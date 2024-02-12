@@ -100,5 +100,4 @@ Contributions to `jellyfin-rs` are welcome! Whether it's adding new features, fi
 
 ## Acknowledgments
 
-This project, `jellyfin-rs`, is inspired by and based on the initial work done by [https://github.com/sargon64/jellyfin-rs](sargon64) on the Jellyfin Rust client. While that project has been on hiatus, it laid the foundation for what we've built here. We are grateful for sargon64's contributions to the community and their work that ignited this project. Our continuation of `jellyfin-rs` aims to expand on that foundation, addressing new API changes and furthering the Rust ecosystem's capabilities for interacting with Jellyfin.
-
+This project, `jellyfin-rs`, is inspired by and based on the initial work done by [sargon64](https://github.com/sargon64/jellyfin-rs) on the Jellyfin Rust client. While that project has been on hiatus, it laid the foundation for what we've built here. We are grateful for sargon64's contributions to the community and their work that ignited this project. Our continuation of `jellyfin-rs` aims to expand on that foundation, addressing new API changes and furthering the Rust ecosystem's capabilities for interacting with Jellyfin.
