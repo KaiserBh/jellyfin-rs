@@ -3,8 +3,10 @@ use user::UserAuth;
 
 pub mod err;
 pub mod items;
+pub mod serde;
 pub mod session;
 pub mod user;
+pub mod utils;
 
 #[derive(Debug, Clone)]
 pub struct JellyfinClient {
