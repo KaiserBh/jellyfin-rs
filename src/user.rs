@@ -6,6 +6,8 @@ use sha1::Digest;
 
 use super::session::SessionInfo;
 use crate::err::JellyfinError;
+use crate::serde::subtitle_mode_serde;
+use crate::utils::handle_http_error;
 use crate::JellyfinClient;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -35,7 +37,8 @@ pub struct UserConfiguration {
     pub subtitle_language_preference: String,
     pub display_missing_episodes: bool,
     pub grouped_folders: Vec<String>,
-    pub subtitle_mode: String,
+    #[serde(with = "subtitle_mode_serde")]
+    pub subtitle_mode: SubtitleMode,
     pub display_collections_view: bool,
     pub enable_local_password: bool,
     pub ordered_views: Vec<String>,
@@ -45,6 +48,17 @@ pub struct UserConfiguration {
     pub remember_audio_selections: bool,
     pub remember_subtitle_selections: bool,
     pub enable_next_episode_auto_play: bool,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum SubtitleMode {
+    #[default]
+    Default,
+    Always,
+    OnlyForced,
+    None,
+    Smart,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -188,12 +202,7 @@ impl JellyfinClient {
                         .await
                         .map_err(JellyfinError::NetworkError)
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -236,12 +245,7 @@ impl JellyfinClient {
                         .await
                         .map_err(JellyfinError::NetworkError)
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -282,12 +286,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -330,12 +329,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -383,12 +377,7 @@ impl JellyfinClient {
                     self.auth = Some(resp.json().await.map_err(JellyfinError::NetworkError)?);
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -434,12 +423,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -485,12 +469,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -536,12 +515,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -614,12 +588,7 @@ impl JellyfinClient {
 
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -654,12 +623,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -697,12 +661,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     Ok(())
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -735,12 +694,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     resp.json().await.map_err(JellyfinError::NetworkError)
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -782,12 +736,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     resp.json().await.map_err(JellyfinError::NetworkError)
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
@@ -813,12 +762,7 @@ impl JellyfinClient {
                 if resp.status().is_success() {
                     resp.json().await.map_err(JellyfinError::NetworkError)
                 } else {
-                    let status_code = resp.status().as_u16();
-                    let error_message = resp.text().await.unwrap_or_default();
-                    Err(JellyfinError::HttpRequestError {
-                        status: status_code,
-                        message: error_message,
-                    })
+                    Err(handle_http_error(resp).await)
                 }
             }
             Err(e) => Err(JellyfinError::NetworkError(e)),
