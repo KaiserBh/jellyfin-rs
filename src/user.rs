@@ -360,13 +360,16 @@ impl JellyfinClient {
             .join(&format!("/Users/{}/Authenticate", id.clone().into()))
             .expect("Failed to join URL");
 
+        // Prepare the query parameters
+        let query_params = AuthUserStdQuery {
+            pw: password.clone().into(),
+            password: format!("{:x}", hasher.finalize()),
+        };
+
         let response = self
         .client
         .post(endpoint_url)
-        .query(&AuthUserStdQuery {
-            pw: password.into(),
-            password: format!("{:x}", hasher.finalize()),
-        })
+        .query(&query_params)
         .header("X-Emby-Authorization", format!("MediaBrowser Client=\"jellyfin-rs\", Device=\"{}\", DeviceId=\"{:x}\", Version=1, Token=\"\"", device_name, md5::compute(device_name.clone())))
         .send()
         .await;
