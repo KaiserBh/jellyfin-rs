@@ -1,10 +1,34 @@
+use std::collections::HashMap;
+
+use reqwest::Response;
+use serde_json::Value;
+
 use crate::err::JellyfinError;
 
-pub async fn handle_http_error(resp: reqwest::Response) -> JellyfinError {
+pub async fn handle_http_error(resp: Response) -> JellyfinError {
     let status_code = resp.status().as_u16();
     let body = resp.text().await.unwrap_or_default();
 
-    if let Ok(parsed_body) = serde_json::from_str::<serde_json::Value>(&body) {
+    // Attempt to parse the body as JSON
+    if let Ok(parsed_body) = serde_json::from_str::<Value>(&body) {
+        // Initialize an empty HashMap for errors
+        let mut errors: HashMap<String, Vec<String>> = HashMap::new();
+
+        // Check if the "errors" field exists and is an object
+        if let Some(errs) = parsed_body.get("errors").and_then(|v| v.as_object()) {
+            for (key, value) in errs {
+                // Assuming each key in "errors" maps to an array of strings
+                if let Some(msgs) = value.as_array() {
+                    errors.insert(
+                        key.clone(),
+                        msgs.iter()
+                            .filter_map(|m| m.as_str().map(String::from))
+                            .collect(),
+                    );
+                }
+            }
+        }
+
         JellyfinError::HttpRequestError {
             status: status_code,
             type_: parsed_body
@@ -23,14 +47,7 @@ pub async fn handle_http_error(resp: reqwest::Response) -> JellyfinError {
                 .get("instance")
                 .and_then(|v| v.as_str())
                 .map(String::from),
-            property1: parsed_body
-                .get("property1")
-                .and_then(|v| v.as_str())
-                .map(String::from),
-            property2: parsed_body
-                .get("property2")
-                .and_then(|v| v.as_str())
-                .map(String::from),
+            errors, // Pass the parsed errors HashMap
             message: body,
         }
     } else {
@@ -42,8 +59,7 @@ pub async fn handle_http_error(resp: reqwest::Response) -> JellyfinError {
             title: None,
             detail: None,
             instance: None,
-            property1: None,
-            property2: None,
+            errors: HashMap::new(),
         }
     }
 }
